@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' blob:; style-src 'self' blob:; connect-src https://api.github.com wss://streamer.finance.yahoo.com; img-src 'self' data:; font-src 'self'; base-uri 'none'; form-action 'none'">
+  <title>Private Dashboard</title>
+  <link rel="stylesheet" href="shell.css">
+</head>
+<body>
+  <header class="access-bar">
+    <div>
+      <strong>Private dashboard</strong>
+      <span id="access-status">Repository token required</span>
+    </div>
+    <button id="logout-button" type="button" hidden>Lock dashboard</button>
+  </header>
+
+  <div id="private-app-root" class="gate" aria-live="polite">
+    <section class="gate-card">
+      <p class="eyebrow">Restricted access</p>
+      <h1>Unlock the dashboard</h1>
+      <p>Enter a fine-grained GitHub token restricted to the private dashboard repository with read-only Contents access.</p>
+      <a id="create-token-link" class="token-link" target="_blank" rel="noopener noreferrer">1. Create restricted token on GitHub</a>
+      <p class="token-help">On GitHub, choose <strong>Only select repositories</strong>, select the private dashboard repository, then generate and copy the token.</p>
+      <label class="token-field" for="github-token">2. Paste the generated token</label>
+      <input id="github-token" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…">
+      <button id="login-button" type="button">3. Load private dashboard</button>
+      <p class="privacy-note">The token is sent only to <code>api.github.com</code> and kept only in this tab's session storage.</p>
+      <p id="gate-message" class="message" role="status"></p>
+    </section>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="loader.js"></script>
+</body>
+</html>
