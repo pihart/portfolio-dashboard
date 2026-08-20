@@ -18,6 +18,7 @@ button { font: inherit; }
   margin: 0;
 }
 .access-bar div { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.access-bar .access-actions { align-items: center; flex-wrap: nowrap; }
 .access-bar span { color: light-dark(#667780, #9eb0b7); font-size: 13px; }
 .access-bar button, .gate-card button {
   border: 0;
@@ -29,6 +30,11 @@ button { font: inherit; }
   font-weight: 650;
 }
 .access-bar button { padding: 7px 11px; }
+.access-bar .secondary-button {
+  border: 1px solid light-dark(#9eb3ba, #52656c);
+  background: transparent;
+  color: inherit;
+}
 .gate { min-height: calc(100vh - 55px); display: grid; place-items: center; padding: 24px; }
 .gate-card {
   width: min(460px, 100%);
@@ -62,6 +68,17 @@ button { font: inherit; }
   background: light-dark(#ffffff, #101719);
   color: inherit;
   font: 13px ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.gate-card input[readonly] {
+  color: light-dark(#51656d, #b8c7cc);
+  background: light-dark(#f2f6f7, #141d20);
+}
+.gate-card form button { width: 100%; }
+.keychain-note {
+  padding: 11px 12px;
+  border-radius: 8px;
+  background: light-dark(#edf5f3, #1d2c2b);
+  font-size: 12px;
 }
 .privacy-note { font-size: 12px; }
 .privacy-note code { color: inherit; }

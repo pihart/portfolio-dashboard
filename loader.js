@@ -6,11 +6,14 @@
   const root = document.getElementById("private-app-root");
   const createTokenLink = document.getElementById("create-token-link");
   const tokenInput = document.getElementById("github-token");
+  const unlockForm = document.getElementById("unlock-form");
   const loginButton = document.getElementById("login-button");
+  const installButton = document.getElementById("install-button");
   const logoutButton = document.getElementById("logout-button");
   const gateMessage = document.getElementById("gate-message");
   const accessStatus = document.getElementById("access-status");
   const blobUrls = [];
+  let deferredInstallPrompt = null;
 
   function setMessage(message, isError = false) {
     if (!gateMessage) return;
@@ -101,6 +104,19 @@
     document.documentElement.dataset.privateDashboardLoaded = "true";
   }
 
+  async function offerCredentialSave(token) {
+    if (!window.PasswordCredential || !navigator.credentials?.store) return;
+    try {
+      await navigator.credentials.store(new PasswordCredential({
+        id: "Private Portfolio Dashboard",
+        name: "Private Portfolio Dashboard",
+        password: token
+      }));
+    } catch (_) {
+      // Password storage is always optional and remains controlled by the browser.
+    }
+  }
+
   function lockDashboard() {
     sessionStorage.removeItem(SESSION_KEY);
     releaseBlobUrls();
@@ -112,7 +128,11 @@
     if (!token) return setMessage("Enter a fine-grained GitHub token.", true);
     loginButton.disabled = true;
     tokenInput.disabled = true;
-    try { await loadPrivateApplication(token); }
+    try {
+      await loadPrivateApplication(token);
+      await offerCredentialSave(token);
+      tokenInput.value = "";
+    }
     catch (error) {
       sessionStorage.removeItem(SESSION_KEY);
       accessStatus.textContent = "Repository token required";
@@ -120,6 +140,41 @@
       tokenInput.disabled = false;
       setMessage(error.message, true);
     }
+  }
+
+  async function installApplication() {
+    if (deferredInstallPrompt) {
+      deferredInstallPrompt.prompt();
+      await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt = null;
+      installButton.hidden = true;
+      return;
+    }
+    setMessage("On Mac, open this page in Safari and choose File → Add to Dock.");
+  }
+
+  function configureInstallation() {
+    const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+    if (isStandalone) installButton.hidden = true;
+    window.addEventListener("beforeinstallprompt", event => {
+      event.preventDefault();
+      deferredInstallPrompt = event;
+      installButton.hidden = false;
+    });
+    window.addEventListener("appinstalled", () => {
+      deferredInstallPrompt = null;
+      installButton.hidden = true;
+    });
+    installButton.addEventListener("click", installApplication);
+  }
+
+  function registerServiceWorker() {
+    if (!("serviceWorker" in navigator)) return;
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./service-worker.js", { scope: "./" }).catch(() => {
+        setMessage("The app is available, but offline installation could not be initialized.", true);
+      });
+    });
   }
 
   async function initialize() {
@@ -131,9 +186,13 @@
       return;
     }
     createTokenLink.href = tokenCreationUrl();
-    loginButton.addEventListener("click", submitToken);
-    tokenInput.addEventListener("keydown", event => { if (event.key === "Enter") submitToken(); });
+    unlockForm.addEventListener("submit", event => {
+      event.preventDefault();
+      submitToken();
+    });
     logoutButton.addEventListener("click", lockDashboard);
+    configureInstallation();
+    registerServiceWorker();
     const savedToken = sessionStorage.getItem(SESSION_KEY);
     if (!savedToken) return;
     loginButton.disabled = true;
