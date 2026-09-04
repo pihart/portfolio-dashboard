@@ -4,7 +4,7 @@ set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 output="$root/.build/pages"
 client_repo="https://github.com/pihart/private-github-content-client.git"
-client_revision="f70a168"
+client_revision="eb79f82"
 
 rm -rf "$output"
 mkdir -p "$output/icons"
