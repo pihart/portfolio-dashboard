@@ -2,7 +2,7 @@
 
 This repository is safe to publish with GitHub Pages. It contains only a generic unlock screen and bundle loader. The dashboard implementation, strategy, data, defaults, and descriptive text stay in a separate private repository.
 
-There is no Worker, backend, OAuth App, or client secret. The shell is also an installable PWA.
+There is no Worker, backend, OAuth App, or client secret. The shell is also an installable PWA. Its token gate and authenticated GitHub client come from the pinned, public `pihart/private-github-content-client` build dependency; the Pages workflow serves that dependency from this site's own origin.
 
 ## How access works
 

@@ -1,8 +1,12 @@
 (() => {
   "use strict";
 
-  const SESSION_KEY = "private-dashboard-github-token";
   const config = window.PRIVATE_DASHBOARD_CONFIG || {};
+  const client = window.PrivateGitHubContentClient.createClient({
+    owner: config.githubOwner,
+    repository: config.privateRepository,
+    sessionKey: "private-dashboard-github-token",
+  });
   const root = document.getElementById("private-app-root");
   const createTokenLink = document.getElementById("create-token-link");
   const tokenInput = document.getElementById("github-token");
@@ -19,29 +23,6 @@
     if (!gateMessage) return;
     gateMessage.textContent = message;
     gateMessage.classList.toggle("error", isError);
-  }
-
-  function privateBundleUrl() {
-    const owner = String(config.githubOwner || "").trim();
-    const repo = String(config.privateRepository || "").trim();
-    const ref = String(config.privateRef || "main").trim();
-    const path = String(config.bundlePath || "dist/bundle.json").split("/").filter(Boolean).map(encodeURIComponent).join("/");
-    if (!owner || !repo || repo.includes("REPLACE-WITH")) throw new Error("Set the private repository name in config.js before deploying.");
-    return `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${path}?ref=${encodeURIComponent(ref)}`;
-  }
-
-  function tokenCreationUrl() {
-    const owner = String(config.githubOwner || "").trim();
-    const repo = String(config.privateRepository || "private dashboard repository").trim();
-    const url = new URL("https://github.com/settings/personal-access-tokens/new");
-    url.search = new URLSearchParams({
-      name: "Private dashboard reader",
-      description: `Read-only browser access to ${owner}/${repo}`,
-      target_name: owner,
-      expires_in: "90",
-      contents: "read"
-    }).toString();
-    return url.toString();
   }
 
   function releaseBlobUrls() {
@@ -76,25 +57,17 @@
     return bundle;
   }
 
-  async function fetchPrivateBundle(token) {
-    const response = await fetch(privateBundleUrl(), {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/vnd.github.raw+json",
-        "X-GitHub-Api-Version": "2026-03-10"
-      },
-      cache: "no-store"
-    });
-    if ([401, 403, 404].includes(response.status)) throw new Error("GitHub could not read the private bundle. Check the token, repository name, expiration, and Contents permission.");
-    if (!response.ok) throw new Error(`GitHub private-content request failed (${response.status}).`);
+  async function fetchPrivateBundle() {
+    const ref = String(config.privateRef || "main").trim();
+    const path = String(config.bundlePath || "dist/bundle.json").split("/").filter(Boolean).map(encodeURIComponent).join("/");
+    const response = await client.request(`/contents/${path}`, { query: { ref } });
     return validateBundle(await response.json());
   }
 
-  async function loadPrivateApplication(token) {
+  async function loadPrivateApplication() {
     accessStatus.textContent = "Reading private repository…";
     setMessage("Downloading the private application directly from GitHub…");
-    const bundle = await fetchPrivateBundle(token);
-    sessionStorage.setItem(SESSION_KEY, token);
+    const bundle = await fetchPrivateBundle();
     installStyles(bundle.css);
     root.className = "";
     root.innerHTML = bundle.html;
@@ -118,28 +91,9 @@
   }
 
   function lockDashboard() {
-    sessionStorage.removeItem(SESSION_KEY);
+    client.lock();
     releaseBlobUrls();
     location.reload();
-  }
-
-  async function submitToken() {
-    const token = tokenInput.value.trim();
-    if (!token) return setMessage("Enter a fine-grained GitHub token.", true);
-    loginButton.disabled = true;
-    tokenInput.disabled = true;
-    try {
-      await loadPrivateApplication(token);
-      await offerCredentialSave(token);
-      tokenInput.value = "";
-    }
-    catch (error) {
-      sessionStorage.removeItem(SESSION_KEY);
-      accessStatus.textContent = "Repository token required";
-      loginButton.disabled = false;
-      tokenInput.disabled = false;
-      setMessage(error.message, true);
-    }
   }
 
   async function installApplication() {
@@ -185,26 +139,24 @@
       tokenInput.disabled = true;
       return;
     }
-    createTokenLink.href = tokenCreationUrl();
-    unlockForm.addEventListener("submit", event => {
-      event.preventDefault();
-      submitToken();
+    const restore = window.PrivateGitHubContentClient.bindTokenGate({
+      client,
+      form: unlockForm,
+      tokenInput,
+      submitButton: loginButton,
+      tokenLink: createTokenLink,
+      status: accessStatus,
+      tokenLinkOptions: { name: "Private dashboard reader", expiresIn: 90 },
+      onUnlock: async token => {
+        await loadPrivateApplication();
+        await offerCredentialSave(token);
+      },
+      onError: error => setMessage(error.message, true),
     });
     logoutButton.addEventListener("click", lockDashboard);
     configureInstallation();
     registerServiceWorker();
-    const savedToken = sessionStorage.getItem(SESSION_KEY);
-    if (!savedToken) return;
-    loginButton.disabled = true;
-    tokenInput.disabled = true;
-    try { await loadPrivateApplication(savedToken); }
-    catch (error) {
-      sessionStorage.removeItem(SESSION_KEY);
-      accessStatus.textContent = "Repository token required";
-      loginButton.disabled = false;
-      tokenInput.disabled = false;
-      setMessage(error.message, true);
-    }
+    restore();
   }
 
   initialize();

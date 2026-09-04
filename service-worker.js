@@ -6,6 +6,7 @@ const PUBLIC_SHELL = [
   "./index.html",
   "./shell.css",
   "./config.js",
+  "./github-private-content-client.js",
   "./loader.js",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
