@@ -6,7 +6,7 @@ There is no Worker, backend, OAuth App, or client secret. The shell is also an i
 
 ## How access works
 
-1. Click the shell's **Create restricted token on GitHub** link. GitHub opens a token form prefilled with the owner, a 90-day expiration, and `Contents: Read`.
+1. Click the shell's **Create restricted token on GitHub** link. It uses a normal same-window navigation so it works from Safari and the installed Mac web app. GitHub opens a token form prefilled with the owner, a 90-day expiration, and `Contents: Read`.
 2. Choose **Only select repositories**, select the private dashboard repository, and generate the token. GitHub does not currently provide a URL parameter that preselects a specific repository.
 3. Copy and paste it into the public shell.
 4. The browser requests `dist/bundle.json` directly from GitHub's Contents API using the raw-file media type.
