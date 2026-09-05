@@ -34,12 +34,12 @@
       <p>Enter a fine-grained GitHub token restricted to the private dashboard repository with read-only Contents access.</p>
       <a id="create-token-link" class="token-link" href="https://github.com/settings/personal-access-tokens/new?name=Private+dashboard+reader&amp;description=Read-only+browser+access+to+pihart%2Fportfolio-dashboard-private&amp;target_name=pihart&amp;expires_in=90&amp;contents=read">1. Create restricted token on GitHub</a>
       <p class="token-help">On GitHub, choose <strong>Only select repositories</strong>, select the private dashboard repository, then generate and copy the token.</p>
-      <form id="unlock-form" method="post" action="./" autocomplete="on">
+      <form id="unlock-form" method="dialog" autocomplete="on">
         <label class="token-field" for="credential-username">2. Passwords account</label>
         <input id="credential-username" name="username" type="text" autocomplete="username" value="Private Portfolio Dashboard" readonly>
         <label class="token-field" for="github-token">3. GitHub token</label>
         <input id="github-token" name="password" type="password" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="github_pat_…">
-        <button id="login-button" type="submit">Unlock dashboard</button>
+        <button id="login-button" type="button">Unlock dashboard</button>
       </form>
       <p class="keychain-note">On the first successful unlock, save the credential if Passwords offers. Later, select the token field and use AutoFill or Touch ID.</p>
       <p class="privacy-note">The token is sent only to <code>api.github.com</code>. The app keeps it in this window's temporary session, never in its offline cache.</p>

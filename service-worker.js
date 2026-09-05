@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "private-dashboard-shell-v2";
+const CACHE_NAME = "private-dashboard-shell-v3";
 const PUBLIC_SHELL = [
   "./",
   "./index.html",

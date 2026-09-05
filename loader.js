@@ -153,6 +153,12 @@
       },
       onError: error => setMessage(error.message, true),
     });
+    loginButton.addEventListener("click", () => unlockForm.requestSubmit());
+    tokenInput.addEventListener("keydown", event => {
+      if (event.key !== "Enter") return;
+      event.preventDefault();
+      unlockForm.requestSubmit();
+    });
     logoutButton.addEventListener("click", lockDashboard);
     configureInstallation();
     registerServiceWorker();
